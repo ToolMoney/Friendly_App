@@ -1,0 +1,18 @@
+<script>
+function deleteFriend(name) {
+  const confirmation = confirm('Do you really want to delete ' + name + '?')
+  if (confirmation) {
+    fetch('/api/friends/' + name,  {
+      method: 'DELETE'
+    }).then(() => {
+      window.location.replace('/friends')
+    })
+  }
+}
+</script>
+
+<h1>{{friend_name}}</h1>
+<h2>🎉🎉🎉</h2>
+<br>
+<button onclick="deleteFriend('{{friend_name}}')">Delete Friend</button>
+<a href="/friends">See the rest of your friends</a>

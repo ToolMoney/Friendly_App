@@ -1,0 +1,49 @@
+<style>
+    @keyframes flash-green {
+        0%,100% { background: none }
+        25% { background: darkgreen }
+    }
+    li.new-item {
+        animation: flash-green 1s linear;
+    }
+</style>
+
+<script>
+    function postFriend(event) {
+        event.preventDefault()
+        const friendField = document.getElementById("friend_field")
+        const friendName = friendField.value
+        fetch('/api/friends',  {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'friend_name=' + friendName
+        }).then((response) => {add_friend(friendName)})
+        friendField.value = ''
+
+    }
+
+    function add_friend(name) {
+        const friendList = document.getElementById("friend_list")
+        const newFriend = document.createElement('li')
+        newFriend.classList.add('new-item')
+        newFriend.append(name)
+        friendList.append(newFriend)
+    }
+</script>
+
+<h1>Look how many friends you have!</h1>
+<ul id="friend_list">
+    {% for friend in friends %}
+    <li>
+        {{friend}}
+    </li>
+    {% endfor %}
+</ul>
+<form onsubmit="postFriend(event)">
+    <input type="text" name="friend_name" id="friend_field" />
+    <input type="submit" value="Add a Friend?" />
+</form>
+<br>
+<a href="/">Home</a>
