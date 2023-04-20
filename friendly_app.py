@@ -58,14 +58,9 @@ def view_friend(friend_name):
 @app.route('/api/friends/<friend_name>', methods=['DELETE'])
 def delete_friend(friend_name):
     if friend_name not in friends:
-        return f'''
-        <p>{friend_name} is not in your friend list 😭</p>
-        <a href="/friends">Click here to see who your real friends are.</a>
-        '''
+        return ('', 404)
     friends.remove(friend_name)
 
     with open('friends.txt', 'w') as friend_file:
         friend_file.write('\n'.join(friends))
-    return f'''
-    <p>{friend_name} has been deleted from your friends list.</p>
-    '''
+    return ('', 204)

@@ -3,7 +3,7 @@
         0%,100% { background: none }
         25% { background: darkgreen }
     }
-    li.new-item {
+    td.new-item {
         animation: flash-green 1s linear;
     }
 </style>
@@ -24,23 +24,61 @@
 
     }
 
+
     function add_friend(name) {
-        const friendList = document.getElementById("friend_list")
-        const newFriend = document.createElement('li')
-        newFriend.classList.add('new-item')
-        newFriend.append(name)
-        friendList.append(newFriend)
+        const friendTable = document.getElementById("friend-table")
+        const newRow = friendTable.insertRow(-1);
+        const newCell = newRow.insertCell(0);
+        const newTableData = document.createTextNode(name);
+        newCell.classList.add('new-item')
+        newCell.appendChild(newTableData)
     }
+
+
+    function deleteFriend(name) {
+        const confirmation = confirm('Do you really want to delete ' + name + '?')
+        if (confirmation) {
+            fetch('/api/friends/' + name,  {
+                method: 'DELETE'
+            }).then(() => {
+                window.location.replace('/friends')
+            })
+        }
+    }
+
+
+    function moreInfo(name) {
+        const div = document.getElementById(`info-${name}`);
+        div.style.display = div.style.display === "none" ? "block" : "none";
+        const button = document.getElementById(`info-button-${name}`);
+        button.textContent = button.textContent === "More Info" ? "Less Info" : "More Info";
+    }
+
+
+
+
 </script>
 
 <h1>Look how many friends you have!</h1>
-<ul id="friend_list">
+
+<table id="friend-table">
     {% for friend in friends %}
-    <li>
-        {{friend}}
-    </li>
+    <tr>
+        <td id="friend-{{friend}}">{{friend}}</td>
+        <td id="data-{{friend}}">
+            <button id="info-button-{{friend}}" onclick="moreInfo('{{friend}}')">More Info</button>
+            <div id="info-{{friend}}" style="display: none">
+                <h1>{{friend}}</h1>
+                <h2>🎉🎉🎉</h2>
+                <br>
+                <button onclick="deleteFriend('{{friend_name}}')">Delete Friend</button>
+            </div>
+        </td>
+    </tr>
     {% endfor %}
-</ul>
+</table>
+
+
 <form onsubmit="postFriend(event)">
     <input type="text" name="friend_name" id="friend_field" />
     <input type="submit" value="Add a Friend?" />
