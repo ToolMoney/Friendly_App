@@ -29,7 +29,7 @@ def florida():
 
 @app.route('/api/friends', methods=['POST'])
 def create_friend():
-    friend = request.form['friend_name']
+    friend = request.json['name']
     
     with open('friends.txt', 'a') as friend_file:
         if friends:
@@ -37,7 +37,7 @@ def create_friend():
         else:
             friend_file.write(friend)
     friends.append(friend)
-    return render_template('friends.html', friend=friend)
+    return {'name': friend}
 
 
 @app.route('/friends', methods=['GET'])
@@ -46,22 +46,12 @@ def list_friends():
 
 
 
-
-@app.get('/friends/<friend_name>')
-def view_friend(friend_name):
-
-    if friend_name not in friends:
-        return render_template('view_friend404.html', friend_name=friend_name)
-    else:
-        return render_template('view_friend.html', friend_name=friend_name)
-
-
 @app.route('/api/friends/<friend_name>', methods=['DELETE'])
 def delete_friend(friend_name):
     if friend_name not in friends:
-        return ('', 404)
+        return ({}, 404)
     friends.remove(friend_name)
 
     with open('friends.txt', 'w') as friend_file:
         friend_file.write('\n'.join(friends))
-    return ('', 204)
+    return ({}, 204)

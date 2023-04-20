@@ -50,10 +50,11 @@
         fetch('/api/friends',  {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/json'
             },
-            body: 'friend_name=' + friendName
-        }).then((response) => {add_friend(friendName)})
+            body: JSON.stringify({name: friendName})
+        }).then((response) => response.json()
+        ).then((responseFriend) => add_friend(responseFriend.name))
         friendField.value = ''
     }
 
@@ -61,30 +62,21 @@
     function add_friend(name) {
         const friendTable = document.getElementById("friend-table");
         const newRow = friendTable.insertRow(-1);
+        newRow.id = `row-${name}`
         const nameCell = newRow.insertCell(0);
         const newTableData = document.createTextNode(name);
         newRow.classList.add('new-item');
         nameCell.appendChild(newTableData);
 
         const infoCell = newRow.insertCell(1);
-
+        const info = document.createElement('friend-info')
+        info.innerText = name
+        info.setAttribute('friend-name', name)
+        infoCell.appendChild(info)
     }
-
-
-    function deleteFriend(name) {
-        const confirmation = confirm('Do you really want to delete ' + name + '?')
-        if (confirmation) {
-            fetch('/api/friends/' + name,  {
-                method: 'DELETE'
-            })
-        }
-    }
-
-
 
 
     window.customElements.define('friend-info', FriendInfo);
-
 
 </script>
 
@@ -92,7 +84,7 @@
     <button id="info-button-id" onclick="this.getRootNode().host.moreInfo()">More Info</button>
     <div id="info-id" style="display: none">
         <h1>
-            <slot name="friend-name"></slot>
+            <slot></slot>
         </h1>
         <h2>🎉🎉🎉</h2>
         <br>
@@ -111,7 +103,7 @@
         </td>
         <td>
             <friend-info friend-name="{{friend}}">
-                <span slot="friend-name">{{friend}}</span>
+                {{friend}}
             </friend-info>
         </td>
     </tr>
