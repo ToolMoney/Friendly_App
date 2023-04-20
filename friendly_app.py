@@ -37,13 +37,14 @@ def create_friend():
         else:
             friend_file.write(friend)
     friends.append(friend)
-    return render_template('friends_post.html', friend=friend)
+    return render_template('friends.html', friend=friend)
 
 
 @app.route('/friends', methods=['GET'])
 def list_friends():
-    
     return render_template('friends.html', friends=friends)
+
+
 
 
 @app.get('/friends/<friend_name>')

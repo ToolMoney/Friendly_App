@@ -3,12 +3,46 @@
         0%,100% { background: none }
         25% { background: darkgreen }
     }
-    td.new-item {
+    tr.new-item {
         animation: flash-green 1s linear;
     }
 </style>
 
 <script>
+    class FriendInfo extends HTMLElement {
+        constructor() {
+            super();
+            
+            let template = document.getElementById('friend-table-data');
+            let templateContent = template.content;
+
+            const shadowRoot = this.attachShadow({ mode: 'open' });
+            shadowRoot.appendChild(templateContent.cloneNode(true));
+        }
+
+        deleteFriend() {
+            const friendName = this.getAttribute('friend-name');
+            const confirmation = confirm('Do you really want to delete ' + friendName + '?');
+            if (confirmation) {
+                fetch('/api/friends/' + friendName,  {
+                    method: 'DELETE'
+                }).then(() => {
+                    let friendRow = document.getElementById('row-' + friendName)
+                    friendRow.remove()
+                })
+            }
+        }
+
+        moreInfo() {
+            const div = this.shadowRoot.getElementById(`info-id`);
+            div.style.display = div.style.display === "none" ? "block" : "none";
+            const button = this.shadowRoot.getElementById(`info-button-id`);
+            button.textContent = button.textContent === "More Info" ? "Less Info" : "More Info";
+        }
+
+    }
+
+
     function postFriend(event) {
         event.preventDefault()
         const friendField = document.getElementById("friend_field")
@@ -21,17 +55,19 @@
             body: 'friend_name=' + friendName
         }).then((response) => {add_friend(friendName)})
         friendField.value = ''
-
     }
 
 
     function add_friend(name) {
-        const friendTable = document.getElementById("friend-table")
+        const friendTable = document.getElementById("friend-table");
         const newRow = friendTable.insertRow(-1);
-        const newCell = newRow.insertCell(0);
+        const nameCell = newRow.insertCell(0);
         const newTableData = document.createTextNode(name);
-        newCell.classList.add('new-item')
-        newCell.appendChild(newTableData)
+        newRow.classList.add('new-item');
+        nameCell.appendChild(newTableData);
+
+        const infoCell = newRow.insertCell(1);
+
     }
 
 
@@ -40,41 +76,46 @@
         if (confirmation) {
             fetch('/api/friends/' + name,  {
                 method: 'DELETE'
-            }).then(() => {
-                window.location.replace('/friends')
             })
         }
     }
 
 
-    function moreInfo(name) {
-        const div = document.getElementById(`info-${name}`);
-        div.style.display = div.style.display === "none" ? "block" : "none";
-        const button = document.getElementById(`info-button-${name}`);
-        button.textContent = button.textContent === "More Info" ? "Less Info" : "More Info";
-    }
 
 
+    window.customElements.define('friend-info', FriendInfo);
 
 
 </script>
+
+<template id="friend-table-data">
+    <button id="info-button-id" onclick="this.getRootNode().host.moreInfo()">More Info</button>
+    <div id="info-id" style="display: none">
+        <h1>
+            <slot name="friend-name"></slot>
+        </h1>
+        <h2>🎉🎉🎉</h2>
+        <br>
+        <button onclick="this.getRootNode().host.deleteFriend()">Delete Friend</button>
+    </div>
+</template>
+
 
 <h1>Look how many friends you have!</h1>
 
 <table id="friend-table">
     {% for friend in friends %}
-    <tr>
-        <td id="friend-{{friend}}">{{friend}}</td>
-        <td id="data-{{friend}}">
-            <button id="info-button-{{friend}}" onclick="moreInfo('{{friend}}')">More Info</button>
-            <div id="info-{{friend}}" style="display: none">
-                <h1>{{friend}}</h1>
-                <h2>🎉🎉🎉</h2>
-                <br>
-                <button onclick="deleteFriend('{{friend_name}}')">Delete Friend</button>
-            </div>
+    <tr id="row-{{friend}}">
+        <td id="friend-id">
+            {{friend}}
+        </td>
+        <td>
+            <friend-info friend-name="{{friend}}">
+                <span slot="friend-name">{{friend}}</span>
+            </friend-info>
         </td>
     </tr>
+
     {% endfor %}
 </table>
 
