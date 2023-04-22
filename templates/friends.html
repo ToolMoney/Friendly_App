@@ -20,6 +20,18 @@
             shadowRoot.appendChild(templateContent.cloneNode(true));
         }
 
+        static get observedAttributes() { return ['last-contacted']; }
+
+        attributeChangedCallback(name, oldValue, newValue) {
+            if (name === 'last-contacted') {
+                let templateSpan = this.shadowRoot.getElementById('last-contacted');
+                const shinyDate = new Date(newValue);
+                const options = {weekday: 'short', year: 'numeric', month: 'long', day: 'numeric'};
+                templateSpan.innerText = shinyDate.toLocaleDateString("en-US", options);
+            }
+        }
+
+
         deleteFriend() {
             const friendName = this.getAttribute('friend-name');
             const confirmation = confirm('Do you really want to delete ' + friendName + '?');
@@ -39,6 +51,31 @@
             const button = this.shadowRoot.getElementById(`info-button-id`);
             button.textContent = button.textContent === "More Info" ? "Less Info" : "More Info";
         }
+
+
+        setContacted() {
+            const date = new Date();
+            const friendName = this.getAttribute('friend-name');
+            const friendOverwrite = { name: friendName, lastContacted: date};
+            const updateResponse = this.updateFriend(friendOverwrite);
+            updateResponse.then((updatedFriend) => {
+                this.setAttribute('last-contacted', updatedFriend.lastContacted);
+            });
+            
+
+        }
+
+
+        updateFriend(friend) {
+            return fetch('/api/friends/' + friend.name,  {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(friend)
+            }).then((response) => response.json())
+        }
+
 
     }
 
@@ -76,6 +113,10 @@
     }
 
 
+
+
+
+
     window.customElements.define('friend-info', FriendInfo);
 
 </script>
@@ -87,6 +128,10 @@
             <slot></slot>
         </h1>
         <h2>🎉🎉🎉</h2>
+        <p> 
+            Last contacted at <span id="last-contacted">Never</span>
+        </p>
+        <button onclick="this.getRootNode().host.setContacted()">Mark as Contacted</button>
         <br>
         <button onclick="this.getRootNode().host.deleteFriend()">Delete Friend</button>
     </div>
@@ -97,17 +142,16 @@
 
 <table id="friend-table">
     {% for friend in friends %}
-    <tr id="row-{{friend}}">
+    <tr id="row-{{friend['name']}}">
         <td id="friend-id">
-            {{friend}}
+            {{friend['name']}}
         </td>
         <td>
-            <friend-info friend-name="{{friend}}">
-                {{friend}}
+            <friend-info friend-name="{{friend['name']}}" last-contacted="{{friend.get('lastContacted', 'Never')}}">
+                {{friend['name']}}
             </friend-info>
         </td>
     </tr>
-
     {% endfor %}
 </table>
 
