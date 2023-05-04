@@ -5,9 +5,14 @@
 
 # name, contacted log, frequency desired, birthday, last gift received, last gift given
 
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, g
 from markupsafe import escape
 import json
+import sqlite3
+from repository import FriendRepository
+
+
+
 
 
 
@@ -22,6 +27,11 @@ def sync_friends():
 
 app = Flask(__name__)
 
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
 
 @app.route("/")
 def hello_world():
@@ -36,40 +46,24 @@ def florida():
 @app.route('/api/friends', methods=['POST'])
 def create_friend():
     friend = request.json
-    friends.append(friend)
-    sync_friends()
+    FriendRepository.create(friend)
     return friend
 
 
 @app.route('/api/friends/<friend_name>', methods=['PUT'])
 def update_friend(friend_name):
-    for i, friend_dict in enumerate(friends):
-        if friend_name == friend_dict['name']:
-            friend_index = i
-    friend = friends[friend_index]
-    print(friends)
-    friend_update = request.json
-    friend.update(friend_update)
-    print(friends)
-    sync_friends()
+    friend = request.json
+    FriendRepository.update(friend)
     return friend
 
 
 @app.route('/friends', methods=['GET'])
 def list_friends():
+    friends = FriendRepository.list()
     return render_template('friends.html', friends=friends)
 
 
 @app.route('/api/friends/<friend_name>', methods=['DELETE'])
 def delete_friend(friend_name):
-    found = False
-    for i, friend_dict in enumerate(friends):
-        if friend_dict['name'] == friend_name:
-            found = True
-            friend_index= i
-    if not found:
-        return ({}, 404)
-    
-    del friends[friend_index]
-    sync_friends()
+    FriendRepository.delete({'name': friend_name})
     return ({}, 204)
