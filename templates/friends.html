@@ -34,12 +34,13 @@
 
         deleteFriend() {
             const friendName = this.getAttribute('friend-name');
+            const friendId = this.getAttribute('friend-id');
             const confirmation = confirm('Do you really want to delete ' + friendName + '?');
             if (confirmation) {
-                fetch('/api/friends/' + friendName,  {
+                fetch('/api/friends/' + friendId,  {
                     method: 'DELETE'
                 }).then(() => {
-                    let friendRow = document.getElementById('row-' + friendName)
+                    let friendRow = document.getElementById('row-' + friendId)
                     friendRow.remove()
                 })
             }
@@ -56,7 +57,8 @@
         setContacted() {
             const date = new Date();
             const friendName = this.getAttribute('friend-name');
-            const friendOverwrite = { name: friendName, lastContacted: date};
+            const friendId = this.getAttribute('friend-id');
+            const friendOverwrite = { id: friendId, name: friendName, lastContacted: date};
             const updateResponse = this.updateFriend(friendOverwrite);
             updateResponse.then((updatedFriend) => {
                 this.setAttribute('last-contacted', updatedFriend.lastContacted);
@@ -67,7 +69,7 @@
 
 
         updateFriend(friend) {
-            return fetch('/api/friends/' + friend.name,  {
+            return fetch('/api/friends/' + friend.id,  {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -91,24 +93,25 @@
             },
             body: JSON.stringify({name: friendName})
         }).then((response) => response.json()
-        ).then((responseFriend) => add_friend(responseFriend.name))
+        ).then((responseFriend) => add_friend(responseFriend))
         friendField.value = ''
     }
 
 
-    function add_friend(name) {
+    function add_friend(friend) {
         const friendTable = document.getElementById("friend-table");
         const newRow = friendTable.insertRow(-1);
-        newRow.id = `row-${name}`
+        newRow.id = `row-${friend.id}`
         const nameCell = newRow.insertCell(0);
-        const newTableData = document.createTextNode(name);
+        const newTableData = document.createTextNode(friend.name);
         newRow.classList.add('new-item');
         nameCell.appendChild(newTableData);
 
         const infoCell = newRow.insertCell(1);
         const info = document.createElement('friend-info')
-        info.innerText = name
-        info.setAttribute('friend-name', name)
+        info.innerText = friend.name
+        info.setAttribute('friend-name', friend.name);
+        info.setAttribute('friend-id', friend.id)
         infoCell.appendChild(info)
     }
 
@@ -142,12 +145,12 @@
 
 <table id="friend-table">
     {% for friend in friends %}
-    <tr id="row-{{friend['name']}}">
+    <tr id="row-{{friend['id']}}">
         <td id="friend-id">
             {{friend['name']}}
         </td>
         <td>
-            <friend-info friend-name="{{friend['name']}}" last-contacted="{{friend.get('lastContacted', 'Never')}}">
+            <friend-info friend-id="{{friend['id']}}" friend-name="{{friend['name']}}" last-contacted="{{friend.get('lastContacted', 'Never')}}">
                 {{friend['name']}}
             </friend-info>
         </td>

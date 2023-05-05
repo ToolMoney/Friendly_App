@@ -12,29 +12,34 @@ class FriendRepository:
     @staticmethod
     def list():
         rows = get_db().cursor().execute('''
-        SELECT name, last_contacted FROM friends;
+        SELECT id, name, last_contacted FROM friends;
         ''').fetchall()
 
         friends = []
-        for name, last_contacted in rows:
-            friends.append({'name': name, 'lastContacted': last_contacted})
+        for id, name, last_contacted in rows:
+            friends.append({'id': id, 'name': name, 'lastContacted': last_contacted})
         return friends
     
     @staticmethod
     def create(friend):
         database = get_db()
-        database.cursor().execute(f'''
+        row = database.cursor().execute(f'''
         INSERT INTO friends (name)
         VALUES ('{friend['name']}')
-        ''')
+        RETURNING id, name, last_contacted
+        ''').fetchone()
+
+        id, name, last_contacted = row
+        friend = {'id': id, 'name': name, 'lastContacted': last_contacted}
         database.commit()
+        return friend
 
     @staticmethod
     def delete(friend):
         database = get_db()
         database.cursor().execute(f'''
         DELETE FROM friends 
-        WHERE name = '{friend['name']}'
+        WHERE id = '{friend['id']}'
         ''')
         database.commit()
 
@@ -44,6 +49,6 @@ class FriendRepository:
         database.cursor().execute(f'''
         UPDATE friends
         SET last_contacted = '{friend['lastContacted']}'
-        WHERE name = '{friend['name']}'
+        WHERE id = '{friend['id']}'
         ''')
         database.commit()

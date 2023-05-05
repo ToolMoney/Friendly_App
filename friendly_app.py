@@ -13,18 +13,6 @@ from repository import FriendRepository
 
 
 
-
-
-
-with open('friends.json') as friend_file:
-    friends = json.load(friend_file)
-    
-
-def sync_friends():
-    with open('friends.json', 'w') as friend_file:
-        json.dump(friends, friend_file)
-
-
 app = Flask(__name__)
 
 @app.teardown_appcontext
@@ -46,12 +34,11 @@ def florida():
 @app.route('/api/friends', methods=['POST'])
 def create_friend():
     friend = request.json
-    FriendRepository.create(friend)
-    return friend
+    return FriendRepository.create(friend)
 
 
-@app.route('/api/friends/<friend_name>', methods=['PUT'])
-def update_friend(friend_name):
+@app.route('/api/friends/<friend_id>', methods=['PUT'])
+def update_friend(friend_id):
     friend = request.json
     FriendRepository.update(friend)
     return friend
@@ -63,7 +50,7 @@ def list_friends():
     return render_template('friends.html', friends=friends)
 
 
-@app.route('/api/friends/<friend_name>', methods=['DELETE'])
-def delete_friend(friend_name):
-    FriendRepository.delete({'name': friend_name})
+@app.route('/api/friends/<friend_id>', methods=['DELETE'])
+def delete_friend(friend_id):
+    FriendRepository.delete({'id': friend_id})
     return ({}, 204)
