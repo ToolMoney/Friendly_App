@@ -12,7 +12,9 @@ class FriendRepository:
     @staticmethod
     def list():
         rows = get_db().cursor().execute('''
-        SELECT id, name, last_contacted FROM friends;
+        SELECT friends.id, name, timestamp 
+        FROM friends
+        LEFT JOIN contact_log ON friends.id = contact_log.friend_id
         ''').fetchall()
 
         friends = []
@@ -52,3 +54,15 @@ class FriendRepository:
         WHERE id = '{friend['id']}'
         ''')
         database.commit()
+
+
+class ContactLogRepository:
+    @staticmethod
+    def create(friend):
+        database = get_db()
+        database.cursor().execute(f'''
+        INSERT INTO contact_log (friend_id, timestamp)
+        VALUES ({friend['id']}, '{friend['lastContacted']}')
+        ''')
+        database.commit()
+ 

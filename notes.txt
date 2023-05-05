@@ -1,5 +1,8 @@
+repository list function to pull latest contacted only
+
+
 incorperate other data in each row for folks
-table reference by id
+
 pull people who haven't been contacted recently
 last contacted into log
 

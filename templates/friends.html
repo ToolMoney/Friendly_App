@@ -63,22 +63,18 @@
             updateResponse.then((updatedFriend) => {
                 this.setAttribute('last-contacted', updatedFriend.lastContacted);
             });
-            
-
         }
 
 
         updateFriend(friend) {
-            return fetch('/api/friends/' + friend.id,  {
-                method: 'PUT',
+            return fetch('/api/friends/' + friend.id + '/contact_log',  {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(friend)
             }).then((response) => response.json())
         }
-
-
     }
 
 

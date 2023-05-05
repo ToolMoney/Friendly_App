@@ -9,7 +9,7 @@ from flask import Flask, request, render_template, g
 from markupsafe import escape
 import json
 import sqlite3
-from repository import FriendRepository
+from repository import FriendRepository, ContactLogRepository
 
 
 
@@ -54,3 +54,10 @@ def list_friends():
 def delete_friend(friend_id):
     FriendRepository.delete({'id': friend_id})
     return ({}, 204)
+
+
+@app.route('/api/friends/<friend_id>/contact_log', methods=['POST'])
+def creat_contact_log(friend_id):
+    friend = request.json
+    ContactLogRepository.create(friend)
+    return friend
