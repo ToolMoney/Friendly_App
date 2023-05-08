@@ -27,7 +27,10 @@
                 let templateSpan = this.shadowRoot.getElementById('last-contacted');
                 const shinyDate = new Date(newValue);
                 const options = {weekday: 'short', year: 'numeric', month: 'long', day: 'numeric'};
-                templateSpan.innerText = shinyDate.toLocaleDateString("en-US", options);
+                console.log(newValue)
+                if (newValue !== 'None') {
+                    templateSpan.innerText = shinyDate.toLocaleDateString("en-US", options);
+                }
             }
         }
 
@@ -128,7 +131,7 @@
         </h1>
         <h2>🎉🎉🎉</h2>
         <p> 
-            Last contacted at <span id="last-contacted">Never</span>
+            Last contacted <span id="last-contacted">Never</span>
         </p>
         <button onclick="this.getRootNode().host.setContacted()">Mark as Contacted</button>
         <br>

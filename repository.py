@@ -12,9 +12,10 @@ class FriendRepository:
     @staticmethod
     def list():
         rows = get_db().cursor().execute('''
-        SELECT friends.id, name, timestamp 
+        SELECT friends.id, name, MAX(timestamp)
         FROM friends
         LEFT JOIN contact_log ON friends.id = contact_log.friend_id
+        GROUP BY friends.id
         ''').fetchall()
 
         friends = []
@@ -28,11 +29,11 @@ class FriendRepository:
         row = database.cursor().execute(f'''
         INSERT INTO friends (name)
         VALUES ('{friend['name']}')
-        RETURNING id, name, last_contacted
+        RETURNING id, name
         ''').fetchone()
 
-        id, name, last_contacted = row
-        friend = {'id': id, 'name': name, 'lastContacted': last_contacted}
+        id, name = row
+        friend = {'id': id, 'name': name}
         database.commit()
         return friend
 
