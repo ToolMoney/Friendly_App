@@ -16,6 +16,7 @@ class FriendRepository:
         FROM friends
         LEFT JOIN contact_log ON friends.id = contact_log.friend_id
         GROUP BY friends.id
+        ORDER BY timestamp ASC
         ''').fetchall()
 
         friends = []

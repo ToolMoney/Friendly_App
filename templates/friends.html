@@ -6,6 +6,18 @@
     tr.new-item {
         animation: flash-green 1s linear;
     }
+
+    .container {
+        margin-left: 20%;
+        margin-right: 20%;
+    }
+    .title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+
 </style>
 
 <script>
@@ -18,6 +30,7 @@
 
             const shadowRoot = this.attachShadow({ mode: 'open' });
             shadowRoot.appendChild(templateContent.cloneNode(true));
+
         }
 
         static get observedAttributes() { return ['last-contacted']; }
@@ -53,7 +66,6 @@
             const div = this.shadowRoot.getElementById(`info-id`);
             div.style.display = div.style.display === "none" ? "block" : "none";
             const button = this.shadowRoot.getElementById(`info-button-id`);
-            button.textContent = button.textContent === "More Info" ? "Less Info" : "More Info";
         }
 
 
@@ -124,43 +136,51 @@
 </script>
 
 <template id="friend-table-data">
-    <button id="info-button-id" onclick="this.getRootNode().host.moreInfo()">More Info</button>
-    <div id="info-id" style="display: none">
-        <h1>
-            <slot></slot>
-        </h1>
-        <h2>🎉🎉🎉</h2>
-        <p> 
-            Last contacted <span id="last-contacted">Never</span>
-        </p>
-        <button onclick="this.getRootNode().host.setContacted()">Mark as Contacted</button>
-        <br>
-        <button onclick="this.getRootNode().host.deleteFriend()">Delete Friend</button>
+    <style>
+        .friend-button {
+            height: 50px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: x-large;
+        }
+        .friend-container {
+            margin-bottom: 15px;
+        }
+    </style>
+    <div class="friend-container">
+        <button class=friend-button id="info-button-id" onclick="this.getRootNode().host.moreInfo()"><slot></slot></button>
+        <div id="info-id" style="display: none">
+            <h2>🎉🎉🎉</h2>
+            <p> 
+                Last contacted <span id="last-contacted">Never</span>
+            </p>
+            <button onclick="this.getRootNode().host.setContacted()">Mark as Contacted</button>
+            <br>
+            <button onclick="this.getRootNode().host.deleteFriend()">Delete Friend</button>
+        </div>
     </div>
+
 </template>
 
+<div class="container">
+    <h1 class="title">Look how many friends you have!</h1>
 
-<h1>Look how many friends you have!</h1>
+        <div>
+            {% for friend in friends %}
+            <div id="row-{{friend['id']}}">
+                <friend-info friend-id="{{friend['id']}}" friend-name="{{friend['name']}}" last-contacted="{{friend.get('lastContacted', 'Never')}}">
+                    {{friend['name']}}
+                </friend-info>
+            </div>
+            {% endfor %}
+        </div>
 
-<table id="friend-table">
-    {% for friend in friends %}
-    <tr id="row-{{friend['id']}}">
-        <td id="friend-id">
-            {{friend['name']}}
-        </td>
-        <td>
-            <friend-info friend-id="{{friend['id']}}" friend-name="{{friend['name']}}" last-contacted="{{friend.get('lastContacted', 'Never')}}">
-                {{friend['name']}}
-            </friend-info>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
-
-
-<form onsubmit="postFriend(event)">
-    <input type="text" name="friend_name" id="friend_field" />
-    <input type="submit" value="Add a Friend?" />
-</form>
-<br>
-<a href="/">Home</a>
+    <form onsubmit="postFriend(event)">
+        <input type="text" name="friend_name" id="friend_field" />
+        <input type="submit" value="Add a Friend?" />
+    </form>
+    <br>
+    <a href="/">Home</a>
+</div>
