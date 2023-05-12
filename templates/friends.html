@@ -31,19 +31,35 @@
             const shadowRoot = this.attachShadow({ mode: 'open' });
             shadowRoot.appendChild(templateContent.cloneNode(true));
 
+            
         }
 
-        static get observedAttributes() { return ['last-contacted']; }
+        static get observedAttributes() { 
+            return ['last-contacted', 'friend-id'];
+        }
 
         attributeChangedCallback(name, oldValue, newValue) {
             if (name === 'last-contacted') {
                 let templateSpan = this.shadowRoot.getElementById('last-contacted');
                 const shinyDate = new Date(newValue);
                 const options = {weekday: 'short', year: 'numeric', month: 'long', day: 'numeric'};
-                console.log(newValue)
                 if (newValue !== 'None') {
                     templateSpan.innerText = shinyDate.toLocaleDateString("en-US", options);
                 }
+            }
+            if (name === 'friend-id') {
+                let giftIdeasList = this.shadowRoot.getElementById('gift-ideas-list');
+                const friendId = newValue
+                this.getGiftIdeas(friendId).then((giftIdeas) => {
+                    for (let giftIdea of giftIdeas) {
+                        let liElement = document.createElement("li");
+                        let textNode = document.createTextNode(giftIdea.gift);
+                        liElement.setAttribute('id', giftIdea.id);
+                        liElement.setAttribute('gift', giftIdea.gift);
+                        liElement.setAttribute('friend-id', giftIdea.friendId);
+                        giftIdeasList.appendChild(liElement).appendChild(textNode);
+                    }
+                })
             }
         }
 
@@ -53,7 +69,7 @@
             const friendId = this.getAttribute('friend-id');
             const confirmation = confirm('Do you really want to delete ' + friendName + '?');
             if (confirmation) {
-                fetch('/api/friends/' + friendId,  {
+                fetch('/api/friends/' + friendId, {
                     method: 'DELETE'
                 }).then(() => {
                     let friendRow = document.getElementById('row-' + friendId)
@@ -62,27 +78,26 @@
             }
         }
 
+
         moreInfo() {
             const div = this.shadowRoot.getElementById(`info-id`);
-            div.style.display = div.style.display === "none" ? "block" : "none";
-            const button = this.shadowRoot.getElementById(`info-button-id`);
+            div.style.display = div.style.display === "none" ? "grid" : "none";
         }
 
 
         setContacted() {
             const date = new Date();
-            const friendName = this.getAttribute('friend-name');
             const friendId = this.getAttribute('friend-id');
-            const friendOverwrite = { id: friendId, name: friendName, lastContacted: date};
-            const updateResponse = this.updateFriend(friendOverwrite);
+            const friendOverwrite = { id: friendId, lastContacted: date};
+            const updateResponse = this.createContactLog(friendOverwrite);
             updateResponse.then((updatedFriend) => {
                 this.setAttribute('last-contacted', updatedFriend.lastContacted);
             });
         }
 
 
-        updateFriend(friend) {
-            return fetch('/api/friends/' + friend.id + '/contact_log',  {
+        createContactLog(friend) {
+            return fetch('/api/friends/' + friend.id + '/contact_log', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -90,6 +105,15 @@
                 body: JSON.stringify(friend)
             }).then((response) => response.json())
         }
+
+        getGiftIdeas(friend_id) {
+            return fetch('/api/friends/' + friend_id + '/gift_ideas', {
+                method: 'GET'
+            }).then((response) => response.json())
+        }
+
+
+
     }
 
 
@@ -137,6 +161,9 @@
 
 <template id="friend-table-data">
     <style>
+        .friend-container {
+            margin-bottom: 15px;
+        }
         .friend-button {
             height: 50px;
             width: 100%;
@@ -145,20 +172,78 @@
             justify-content: center;
             font-size: x-large;
         }
-        .friend-container {
-            margin-bottom: 15px;
+        .info-wrapper {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            grid-auto-rows: minmax(80px, auto);
         }
+        .info-section {
+            align-items: center;
+            justify-content: center;
+            display: grid;
+            text-align: center;
+        }
+        .birthday-container {
+            grid-column: 1;
+            grid-row: 1;
+        }
+        .frequency-container {
+            grid-column: 2;
+            grid-row: 1;
+        }
+        .last-contacted-container {
+            grid-column: 3;
+            grid-row: 1;
+        }
+        .gift-ideas-container {
+            grid-column: 1;
+            grid-row: 2 / 4;
+        }
+        .gift-given-container {
+            grid-column: 2;
+            grid-row: 2;
+        }
+        .gift-received-container {
+            grid-column: 3;
+            grid-row: 2;
+        }
+        .more-options {
+            grid-column: 3;
+            grid-row: 3;
+            align-items: end;
+        }
+
+
     </style>
     <div class="friend-container">
-        <button class=friend-button id="info-button-id" onclick="this.getRootNode().host.moreInfo()"><slot></slot></button>
-        <div id="info-id" style="display: none">
-            <h2>🎉🎉🎉</h2>
-            <p> 
-                Last contacted <span id="last-contacted">Never</span>
-            </p>
-            <button onclick="this.getRootNode().host.setContacted()">Mark as Contacted</button>
-            <br>
-            <button onclick="this.getRootNode().host.deleteFriend()">Delete Friend</button>
+        <button class="friend-button" id="info-button-id" onclick="this.getRootNode().host.moreInfo()"><slot></slot></button>
+        
+        <div class="info-wrapper" id="info-id" style="display: none">
+            <div class="birthday-container info-section" id="birthday-container">
+                <h2>🎉🎉🎉</h2>
+            </div>
+            <div class="frequency-container info-section" id="frequency-container">
+                <p>Frequency of Contact Desired</p>
+            </div>
+            <div class="last-contacted-container info-section" id="last-contacted-container">
+                <p> 
+                    Last contacted <span id="last-contacted">Never</span>
+                </p>
+                <button onclick="this.getRootNode().host.setContacted()">Mark as Contacted</button>
+            </div>
+            <div class="gift-ideas-container info-section" id="gift-ideas-container">
+                <ul id="gift-ideas-list">Gift Ideas</ul>
+            </div>
+            <div class="gift-given-container info-section" id="gift-given-container">
+                <p>Gift Given</p>
+            </div>
+            <div class="gift-received-container info-section" id="gift-received-container">
+                <p>Gift Received</p>
+            </div>
+            <div class="more-options info-section" id="more-options">
+                <br>
+                <button onclick="this.getRootNode().host.deleteFriend()">Delete Friend</button>
+            </div>
         </div>
     </div>
 
@@ -170,7 +255,15 @@
         <div>
             {% for friend in friends %}
             <div id="row-{{friend['id']}}">
-                <friend-info friend-id="{{friend['id']}}" friend-name="{{friend['name']}}" last-contacted="{{friend.get('lastContacted', 'Never')}}">
+                <friend-info 
+                    friend-id="{{friend['id']}}"
+                    friend-name="{{friend['name']}}"
+                    birthday="{{friend['birthday']}}"
+                    last-contacted="{{friend.get('lastContacted', 'Never')}}"
+                    frequency="{{friend['frequency']}}"
+                    gift-given="{{friend['giftGiven']}}"
+                    gift-received="{{friend['giftReceived']}}"
+                >
                     {{friend['name']}}
                 </friend-info>
             </div>

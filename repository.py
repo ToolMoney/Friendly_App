@@ -12,7 +12,7 @@ class FriendRepository:
     @staticmethod
     def list():
         rows = get_db().cursor().execute('''
-        SELECT friends.id, name, MAX(timestamp)
+        SELECT friends.id, name, MAX(timestamp), frequency, birthday, gift_given, gift_received
         FROM friends
         LEFT JOIN contact_log ON friends.id = contact_log.friend_id
         GROUP BY friends.id
@@ -20,8 +20,16 @@ class FriendRepository:
         ''').fetchall()
 
         friends = []
-        for id, name, last_contacted in rows:
-            friends.append({'id': id, 'name': name, 'lastContacted': last_contacted})
+        for id, name, last_contacted, frequency, birthday, gift_given, gift_received in rows:
+            friends.append({
+                'id': id, 
+                'name': name, 
+                'lastContacted': last_contacted, 
+                'frequency': frequency, 
+                'birthday': birthday, 
+                'giftGiven': gift_given, 
+                'giftReceived': gift_received
+            })
         return friends
     
     @staticmethod
@@ -67,4 +75,41 @@ class ContactLogRepository:
         VALUES ({friend['id']}, '{friend['lastContacted']}')
         ''')
         database.commit()
- 
+
+
+class GiftIdeaRepository:
+    @staticmethod
+    def list(friend_id):
+        rows = get_db().cursor().execute(f'''
+        SELECT id, gift, friend_id FROM gift_ideas
+        WHERE friend_id = '{friend_id}'
+        ''').fetchall()
+
+        gift_ideas = []
+        for id, gift, friend_id in rows:
+            gift_ideas.append({
+                'id': id,
+                'gift': gift,
+                'friendId': friend_id
+            })
+        return gift_ideas
+    
+
+    @staticmethod
+    def create(gift_idea):
+        database = get_db()
+        database.cursor().execute(f'''
+        INSERT INTO gift_ideas (friend_id, gift)
+        VALUES ({gift_idea['friend_id']}, {gift_idea['gift']})
+        ''')
+        database.commit()
+
+    
+    @staticmethod
+    def delete(gift_id):
+        database = get_db()
+        database.cursor().execute(f'''
+        DELETE FROM gift_ideas 
+        WHERE id = '{gift_id}'
+        ''')
+        database.commit()
