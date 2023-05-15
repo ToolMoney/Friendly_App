@@ -9,7 +9,7 @@ from flask import Flask, request, render_template, g
 from markupsafe import escape
 import json
 import sqlite3
-from repository import FriendRepository, ContactLogRepository, GiftIdeaRepository
+from repository import FriendRepository, ContactLogRepository, GiftRepository
 
 
 
@@ -65,19 +65,57 @@ def create_contact_log(friend_id):
 
 
 
-@app.route('/api/friends/<friend_id>/gift_ideas', methods=['GET'])
-def list_gift_ideas(friend_id):
-    gift_ideas = GiftIdeaRepository.list(friend_id)
+@app.route('/api/friends/<friend_id>/gifts', methods=['GET'])
+def list_gift(friend_id):
+    gift_ideas = GiftRepository.list(friend_id)
     return gift_ideas
 
-@app.route('/api/friends/<friend_id>/gift_ideas', methods=['POST'])
-def create_gift_idea(friend_id):
+@app.route('/api/friends/<friend_id>/gifts', methods=['POST'])
+def create_gift(friend_id):
     gift_idea = request.json
     gift_idea['friend_id'] = friend_id
-    return GiftIdeaRepository.create(gift_idea)
+    return GiftRepository.create(gift_idea)
 
-@app.route('/api/friends/<friend_id>/gift_ideas', methods=['DELETE'])
-def delete_gift_idea(friend_id):
+@app.route('/api/friends/<friend_id>/gifts', methods=['DELETE'])
+def delete_gift(friend_id):
     gift_idea = request.json
-    GiftIdeaRepository.delete(gift_idea)
+    GiftRepository.delete(gift_idea)
     return ({}, 204)  # unsure of return
+
+
+
+# @app.route('/api/friends/<friend_id>/gift_given', methods=['GET'])
+# def list_gift_given(friend_id):
+#     gift_given = GiftGivenRepository.list(friend_id)
+#     return gift_given
+
+# @app.route('/api/friends/<friend_id>/gift_given', methods=['POST'])
+# def create_gift_given(friend_id):
+#     gift_given = request.json
+#     gift_given['friend_id'] = friend_id
+#     return GiftGivenRepository.create(gift_given)
+
+# @app.route('/api/friends/<friend_id>/gift_given', methods=['DELETE'])
+# def delete_gift_given(friend_id):
+#     gift_given = request.json
+#     GiftGivenRepository.delete(gift_given)
+#     return ({}, 204)  # unsure of return
+
+
+
+# @app.route('/api/friends/<friend_id>/gift_received', methods=['GET'])
+# def list_gift_received(friend_id):
+#     gift_received = GiftGivenRepository.list(friend_id)
+#     return gift_received
+
+# @app.route('/api/friends/<friend_id>/gift_received', methods=['POST'])
+# def create_gift_received(friend_id):
+#     gift_received = request.json
+#     gift_received['friend_id'] = friend_id
+#     return GiftGivenRepository.create(gift_received)
+
+# @app.route('/api/friends/<friend_id>/gift_received', methods=['DELETE'])
+# def delete_gift_received(friend_id):
+#     gift_received = request.json
+#     GiftGivenRepository.delete(gift_received)
+#     return ({}, 204)  # unsure of return

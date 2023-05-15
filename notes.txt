@@ -1,6 +1,6 @@
-Commit changes!!
-
-add funtion to add gift ideas
+Delete gift ideas
+insert gift given and gift received 
+drag and drop sweetness between gift sections
 
 
 adding friend-info attributes to info-wrapper

@@ -49,9 +49,9 @@
             }
             if (name === 'friend-id') {
                 const friendId = newValue
-                this.getGiftIdeas(friendId).then((giftIdeas) => {
-                    for (let giftIdea of giftIdeas) {
-                        this.createGiftElement(giftIdea);
+                this.getGiftIdeas(friendId).then((gifts) => {
+                    for (let gift of gifts) {
+                        this.addGift(gift);
                     }
                 })
             }
@@ -101,39 +101,60 @@
         }
 
         getGiftIdeas(friend_id) {
-            return fetch('/api/friends/' + friend_id + '/gift_ideas', {
+            return fetch(`/api/friends/${friend_id}/gifts`, {
                 method: 'GET'
             }).then((response) => response.json())
         }
 
-        postGiftIdea(event) {
+        postGiftIdea(event, giftFieldId, status) {
             event.preventDefault();
-            const giftField = this.shadowRoot.getElementById("gift_field");
+            const giftField = this.shadowRoot.getElementById(giftFieldId);
             const giftIdea = giftField.value;
             const friendId = this.getAttribute('friend-id');
-            fetch('/api/friends/' + friendId + '/gift_ideas',  {
+            fetch(`/api/friends/${friendId}/gifts`,  {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({gift: giftIdea})
+                body: JSON.stringify({gift: giftIdea, status: status})
             }).then((response) => response.json()
-            ).then((responseGift) => this.addGiftIdea(responseGift))
+            ).then((responseGift) => this.addGift(responseGift))
             giftField.value = '';
         }
 
-        addGiftIdea(giftIdea) {
-            this.createGiftElement(giftIdea);
+        addGift(gift) {
+            const status = gift['status']
+            if (status === 'idea') {
+                this.addGiftIdea(gift);
+            } else if (status === 'given') {
+                this.addGiftGiven(gift);
+            } else if (status === 'received') {
+                this.addGiftReceived(gift);
+            }
         }
 
-        createGiftElement(giftIdea) {
+        addGiftIdea(giftIdea) {
             let giftIdeasList = this.shadowRoot.getElementById('gift-ideas-list');
+            this.createGiftElement(giftIdea, giftIdeasList);
+        }
+
+        addGiftGiven(giftIdea) {
+            let giftGivenList = this.shadowRoot.getElementById('gift-given-list');
+            this.createGiftElement(giftIdea, giftGivenList);
+        }
+
+        addGiftReceived(giftIdea) {
+            let giftReceivedList = this.shadowRoot.getElementById('gift-received-list');
+            this.createGiftElement(giftIdea, giftReceivedList);
+        }
+
+        createGiftElement(giftIdea, giftSection) {
             let liElement = document.createElement("li");
             let textNode = document.createTextNode(giftIdea.gift);
             liElement.setAttribute('id', giftIdea.id);
             liElement.setAttribute('gift', giftIdea.gift);
             liElement.setAttribute('friend-id', giftIdea.friendId);
-            giftIdeasList.appendChild(liElement).appendChild(textNode);
+            giftSection.appendChild(liElement).appendChild(textNode);
         }
 
     }
@@ -252,16 +273,24 @@
 
             <div class="gift-ideas-container info-section" id="gift-ideas-container">
                 <ul id="gift-ideas-list">Gift Ideas</ul>
-                <form onsubmit="this.getRootNode().host.postGiftIdea(event)">
-                    <input type="text" name="gift_idea" id="gift_field" />
+                <form onsubmit="this.getRootNode().host.postGiftIdea(event, 'gift_idea_field', 'idea')">
+                    <input type="text" name="gift_idea" id="gift_idea_field" />
                     <input type="submit" value="Add a gift idea!" />
                 </form>
             </div>
             <div class="gift-given-container info-section" id="gift-given-container">
-                <p>Gift Given</p>
+                <ul id="gift-given-list">Gift Given</ul>
+                <form onsubmit="this.getRootNode().host.postGiftIdea(event, 'gift_given_field', 'given')">
+                    <input type="text" name="gift_idea" id="gift_given_field" />
+                    <input type="submit" value="Add a gift given!" />
+                </form>
             </div>
             <div class="gift-received-container info-section" id="gift-received-container">
-                <p>Gift Received</p>
+                <ul id="gift-received-list">Gift Received</ul>
+                <form onsubmit="this.getRootNode().host.postGiftIdea(event, 'gift_received_field', 'received')">
+                    <input type="text" name="gift_idea" id="gift_received_field" />
+                    <input type="submit" value="Add a gift received!" />
+                </form>
             </div>
             <div class="more-options info-section" id="more-options">
                 <br>

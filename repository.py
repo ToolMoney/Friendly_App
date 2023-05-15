@@ -77,20 +77,21 @@ class ContactLogRepository:
         database.commit()
 
 
-class GiftIdeaRepository:
+class GiftRepository:
     @staticmethod
     def list(friend_id):
         rows = get_db().cursor().execute(f'''
-        SELECT id, gift, friend_id FROM gift_ideas
+        SELECT id, gift, friend_id, status FROM gift_ideas
         WHERE friend_id = '{friend_id}'
         ''').fetchall()
 
         gift_ideas = []
-        for id, gift, friend_id in rows:
+        for id, gift, friend_id, status in rows:
             gift_ideas.append({
                 'id': id,
                 'gift': gift,
-                'friendId': friend_id
+                'friendId': friend_id,
+                'status': status
             })
         return gift_ideas
     
@@ -99,15 +100,15 @@ class GiftIdeaRepository:
     def create(gift_idea):
         database = get_db()
         row = database.cursor().execute(f'''
-        INSERT INTO gift_ideas (friend_id, gift)
-        VALUES ({gift_idea['friend_id']}, '{gift_idea['gift']}')
-        RETURNING id, gift, friend_id
-        ''').fetchone()
+        INSERT INTO gift_ideas (friend_id, gift, status)
+        VALUES (:friend_id, :gift, :status)
+        RETURNING id, gift, friend_id, status
+        ''', gift_idea).fetchone()
 
-        id, gift, friend_id = row
-        friend = {'id': id, 'gift': gift, 'friendId': friend_id}
+        id, gift, friend_id, status = row
+        gift = {'id': id, 'gift': gift, 'friendId': friend_id, 'status': status}
         database.commit()
-        return friend
+        return gift
     
     @staticmethod
     def delete(gift_id):
