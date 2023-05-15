@@ -98,12 +98,16 @@ class GiftIdeaRepository:
     @staticmethod
     def create(gift_idea):
         database = get_db()
-        database.cursor().execute(f'''
+        row = database.cursor().execute(f'''
         INSERT INTO gift_ideas (friend_id, gift)
-        VALUES ({gift_idea['friend_id']}, {gift_idea['gift']})
-        ''')
-        database.commit()
+        VALUES ({gift_idea['friend_id']}, '{gift_idea['gift']}')
+        RETURNING id, gift, friend_id
+        ''').fetchone()
 
+        id, gift, friend_id = row
+        friend = {'id': id, 'gift': gift, 'friendId': friend_id}
+        database.commit()
+        return friend
     
     @staticmethod
     def delete(gift_id):

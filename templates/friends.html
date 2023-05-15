@@ -48,16 +48,10 @@
                 }
             }
             if (name === 'friend-id') {
-                let giftIdeasList = this.shadowRoot.getElementById('gift-ideas-list');
                 const friendId = newValue
                 this.getGiftIdeas(friendId).then((giftIdeas) => {
                     for (let giftIdea of giftIdeas) {
-                        let liElement = document.createElement("li");
-                        let textNode = document.createTextNode(giftIdea.gift);
-                        liElement.setAttribute('id', giftIdea.id);
-                        liElement.setAttribute('gift', giftIdea.gift);
-                        liElement.setAttribute('friend-id', giftIdea.friendId);
-                        giftIdeasList.appendChild(liElement).appendChild(textNode);
+                        this.createGiftElement(giftIdea);
                     }
                 })
             }
@@ -112,15 +106,43 @@
             }).then((response) => response.json())
         }
 
+        postGiftIdea(event) {
+            event.preventDefault();
+            const giftField = this.shadowRoot.getElementById("gift_field");
+            const giftIdea = giftField.value;
+            const friendId = this.getAttribute('friend-id');
+            fetch('/api/friends/' + friendId + '/gift_ideas',  {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({gift: giftIdea})
+            }).then((response) => response.json()
+            ).then((responseGift) => this.addGiftIdea(responseGift))
+            giftField.value = '';
+        }
 
+        addGiftIdea(giftIdea) {
+            this.createGiftElement(giftIdea);
+        }
+
+        createGiftElement(giftIdea) {
+            let giftIdeasList = this.shadowRoot.getElementById('gift-ideas-list');
+            let liElement = document.createElement("li");
+            let textNode = document.createTextNode(giftIdea.gift);
+            liElement.setAttribute('id', giftIdea.id);
+            liElement.setAttribute('gift', giftIdea.gift);
+            liElement.setAttribute('friend-id', giftIdea.friendId);
+            giftIdeasList.appendChild(liElement).appendChild(textNode);
+        }
 
     }
 
 
     function postFriend(event) {
-        event.preventDefault()
-        const friendField = document.getElementById("friend_field")
-        const friendName = friendField.value
+        event.preventDefault();
+        const friendField = document.getElementById("friend_field");
+        const friendName = friendField.value;
         fetch('/api/friends',  {
             method: 'POST',
             headers: {
@@ -128,15 +150,15 @@
             },
             body: JSON.stringify({name: friendName})
         }).then((response) => response.json()
-        ).then((responseFriend) => add_friend(responseFriend))
-        friendField.value = ''
+        ).then((responseFriend) => addFriend(responseFriend))
+        friendField.value = '';
     }
 
 
-    function add_friend(friend) {
+    function addFriend(friend) {
         const friendTable = document.getElementById("friend-table");
         const newRow = friendTable.insertRow(-1);
-        newRow.id = `row-${friend.id}`
+        newRow.id = `row-${friend.id}`;
         const nameCell = newRow.insertCell(0);
         const newTableData = document.createTextNode(friend.name);
         newRow.classList.add('new-item');
@@ -149,10 +171,6 @@
         info.setAttribute('friend-id', friend.id)
         infoCell.appendChild(info)
     }
-
-
-
-
 
 
     window.customElements.define('friend-info', FriendInfo);
@@ -231,8 +249,13 @@
                 </p>
                 <button onclick="this.getRootNode().host.setContacted()">Mark as Contacted</button>
             </div>
+
             <div class="gift-ideas-container info-section" id="gift-ideas-container">
                 <ul id="gift-ideas-list">Gift Ideas</ul>
+                <form onsubmit="this.getRootNode().host.postGiftIdea(event)">
+                    <input type="text" name="gift_idea" id="gift_field" />
+                    <input type="submit" value="Add a gift idea!" />
+                </form>
             </div>
             <div class="gift-given-container info-section" id="gift-given-container">
                 <p>Gift Given</p>

@@ -1,3 +1,8 @@
+Commit changes!!
+
+add funtion to add gift ideas
+
+
 adding friend-info attributes to info-wrapper
 
 incorperate other data in each row for folks

@@ -74,8 +74,7 @@ def list_gift_ideas(friend_id):
 def create_gift_idea(friend_id):
     gift_idea = request.json
     gift_idea['friend_id'] = friend_id
-    GiftIdeaRepository.create(gift_idea)
-    return gift_idea
+    return GiftIdeaRepository.create(gift_idea)
 
 @app.route('/api/friends/<friend_id>/gift_ideas', methods=['DELETE'])
 def delete_gift_idea(friend_id):
