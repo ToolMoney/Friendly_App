@@ -20,6 +20,8 @@
 
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
 <script>
     class FriendInfo extends HTMLElement {
         constructor() {
@@ -50,6 +52,7 @@
             if (name === 'friend-id') {
                 const friendId = newValue
                 this.getGiftIdeas(friendId).then((gifts) => {
+                    this.makeGiftListSortable()
                     for (let gift of gifts) {
                         this.addGift(gift);
                     }
@@ -116,7 +119,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({gift: giftIdea, status: status})
+                body: JSON.stringify({gift: giftIdea, status})
             }).then((response) => response.json()
             ).then((responseGift) => this.addGift(responseGift))
             giftField.value = '';
@@ -132,6 +135,35 @@
                 this.addGiftReceived(gift);
             }
         }
+
+
+        getSortableOptions(status) {
+            return {
+                group: 'gifts', 
+                sort: false,
+                onAdd: (event) => {
+                    const id = event.item.getAttribute('id');
+                    const friendId = event.item.getAttribute('friend-id');
+                    fetch(`/api/friends/${friendId}/gifts/${id}`,  {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({status})
+                    })
+                }
+            }
+        }
+
+        makeGiftListSortable() {
+            let giftIdeasList = this.shadowRoot.getElementById('gift-ideas-list');
+            let giftGivenList = this.shadowRoot.getElementById('gift-given-list');
+            let giftReceivedList = this.shadowRoot.getElementById('gift-received-list');
+            Sortable.create(giftIdeasList, this.getSortableOptions('idea'));
+            Sortable.create(giftGivenList, this.getSortableOptions('given'));
+            Sortable.create(giftReceivedList, this.getSortableOptions('received'));
+        }
+
 
         addGiftIdea(giftIdea) {
             let giftIdeasList = this.shadowRoot.getElementById('gift-ideas-list');
@@ -154,6 +186,7 @@
             liElement.setAttribute('id', giftIdea.id);
             liElement.setAttribute('gift', giftIdea.gift);
             liElement.setAttribute('friend-id', giftIdea.friendId);
+            liElement.setAttribute('draggable', 'true');
             giftSection.appendChild(liElement).appendChild(textNode);
         }
 

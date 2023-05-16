@@ -67,8 +67,7 @@ def create_contact_log(friend_id):
 
 @app.route('/api/friends/<friend_id>/gifts', methods=['GET'])
 def list_gift(friend_id):
-    gift_ideas = GiftRepository.list(friend_id)
-    return gift_ideas
+    return GiftRepository.list(friend_id)
 
 @app.route('/api/friends/<friend_id>/gifts', methods=['POST'])
 def create_gift(friend_id):
@@ -84,38 +83,8 @@ def delete_gift(friend_id):
 
 
 
-# @app.route('/api/friends/<friend_id>/gift_given', methods=['GET'])
-# def list_gift_given(friend_id):
-#     gift_given = GiftGivenRepository.list(friend_id)
-#     return gift_given
-
-# @app.route('/api/friends/<friend_id>/gift_given', methods=['POST'])
-# def create_gift_given(friend_id):
-#     gift_given = request.json
-#     gift_given['friend_id'] = friend_id
-#     return GiftGivenRepository.create(gift_given)
-
-# @app.route('/api/friends/<friend_id>/gift_given', methods=['DELETE'])
-# def delete_gift_given(friend_id):
-#     gift_given = request.json
-#     GiftGivenRepository.delete(gift_given)
-#     return ({}, 204)  # unsure of return
-
-
-
-# @app.route('/api/friends/<friend_id>/gift_received', methods=['GET'])
-# def list_gift_received(friend_id):
-#     gift_received = GiftGivenRepository.list(friend_id)
-#     return gift_received
-
-# @app.route('/api/friends/<friend_id>/gift_received', methods=['POST'])
-# def create_gift_received(friend_id):
-#     gift_received = request.json
-#     gift_received['friend_id'] = friend_id
-#     return GiftGivenRepository.create(gift_received)
-
-# @app.route('/api/friends/<friend_id>/gift_received', methods=['DELETE'])
-# def delete_gift_received(friend_id):
-#     gift_received = request.json
-#     GiftGivenRepository.delete(gift_received)
-#     return ({}, 204)  # unsure of return
+@app.route('/api/friends/<friend_id>/gifts/<id>', methods=['PUT'])
+def update_gift_status(friend_id, id):
+    gift = request.json
+    gift['id'] = id
+    return GiftRepository.update(gift)

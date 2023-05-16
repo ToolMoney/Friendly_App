@@ -99,7 +99,7 @@ class GiftRepository:
     @staticmethod
     def create(gift_idea):
         database = get_db()
-        row = database.cursor().execute(f'''
+        row = database.cursor().execute('''
         INSERT INTO gift_ideas (friend_id, gift, status)
         VALUES (:friend_id, :gift, :status)
         RETURNING id, gift, friend_id, status
@@ -118,3 +118,19 @@ class GiftRepository:
         WHERE id = '{gift_id}'
         ''')
         database.commit()
+
+    @staticmethod
+    def update(gift):
+        database = get_db()
+        row = database.cursor().execute('''
+        UPDATE gift_ideas
+        SET status = :status
+        WHERE id = :id
+        RETURNING id, gift, friend_id, status
+        ''', gift).fetchone()
+
+        id, gift, friend_id, status = row
+        gift = {'id': id, 'gift': gift, 'friendId': friend_id, 'status': status}
+        database.commit()
+        return gift
+        
