@@ -75,16 +75,14 @@ def create_gift(friend_id):
     gift_idea['friend_id'] = friend_id
     return GiftRepository.create(gift_idea)
 
-@app.route('/api/friends/<friend_id>/gifts', methods=['DELETE'])
-def delete_gift(friend_id):
-    gift_idea = request.json
-    GiftRepository.delete(gift_idea)
-    return ({}, 204)  # unsure of return
-
-
-
 @app.route('/api/friends/<friend_id>/gifts/<id>', methods=['PUT'])
 def update_gift_status(friend_id, id):
     gift = request.json
     gift['id'] = id
     return GiftRepository.update(gift)
+
+@app.route('/api/friends/<friend_id>/gifts/<id>', methods=['DELETE'])
+def delete_gift(friend_id, id):
+    GiftRepository.delete(id)
+    # breakpoint()
+    return ({}, 204)

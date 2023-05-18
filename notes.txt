@@ -1,15 +1,8 @@
-Delete gift ideas
-insert gift given and gift received 
-drag and drop sweetness between gift sections
-
 
 adding friend-info attributes to info-wrapper
-
 incorperate other data in each row for folks
 birthdays
 pull people who haven't been contacted recently
-drag from gift ideas to gift given
-
 maximum button width
 
 
@@ -32,6 +25,9 @@ gift_ideas.
 id
 gift
 friend_id
+status = 'idea', 'given', 'received'
+
+
 
 
 HTML            JSON

@@ -32,8 +32,6 @@
 
             const shadowRoot = this.attachShadow({ mode: 'open' });
             shadowRoot.appendChild(templateContent.cloneNode(true));
-
-            
         }
 
         static get observedAttributes() { 
@@ -136,7 +134,6 @@
             }
         }
 
-
         getSortableOptions(status) {
             return {
                 group: 'gifts', 
@@ -155,13 +152,43 @@
             }
         }
 
+        trashGifts() {
+            return {
+                group: 'gifts',
+                onAdd: (event) => {
+                    
+                    const id = event.item.getAttribute('id');
+                    const friendId = event.item.getAttribute('friend-id');
+                    const fire = this.shadowRoot.getElementById('fire');
+                    fire.classList.remove('fade-out');
+                    fire.classList.add('fade-in');
+                    
+                    function fireListener() {
+                        event.item.remove();
+                        fire.classList.add('fade-out');
+                        fire.classList.remove('fade-in');
+                        fire.removeEventListener("animationend", fireListener);
+                    }
+                    fire.addEventListener("animationend", fireListener);
+                    fetch(`/api/friends/${friendId}/gifts/${id}`,  {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                    });
+                }
+            }
+        }
+
         makeGiftListSortable() {
             let giftIdeasList = this.shadowRoot.getElementById('gift-ideas-list');
             let giftGivenList = this.shadowRoot.getElementById('gift-given-list');
             let giftReceivedList = this.shadowRoot.getElementById('gift-received-list');
+            let giftGarbage = this.shadowRoot.getElementById('gift-garbage');
             Sortable.create(giftIdeasList, this.getSortableOptions('idea'));
             Sortable.create(giftGivenList, this.getSortableOptions('given'));
             Sortable.create(giftReceivedList, this.getSortableOptions('received'));
+            Sortable.create(giftGarbage, this.trashGifts());
         }
 
 
@@ -186,9 +213,10 @@
             liElement.setAttribute('id', giftIdea.id);
             liElement.setAttribute('gift', giftIdea.gift);
             liElement.setAttribute('friend-id', giftIdea.friendId);
-            liElement.setAttribute('draggable', 'true');
             giftSection.appendChild(liElement).appendChild(textNode);
         }
+
+
 
     }
 
@@ -225,6 +253,7 @@
         info.setAttribute('friend-id', friend.id)
         infoCell.appendChild(info)
     }
+
 
 
     window.customElements.define('friend-info', FriendInfo);
@@ -279,11 +308,48 @@
             grid-column: 3;
             grid-row: 2;
         }
+        .gift-garbage-container {
+            grid-column: 2;
+            grid-row: 3;
+        }
         .more-options {
             grid-column: 3;
             grid-row: 3;
             align-items: end;
         }
+        .category-title {
+            align-self: start;
+        }
+        .gift-form {
+            align-self: end;
+        }
+        .garbage-list {
+            height: 19.2px;
+        }
+        .fire {
+            max-width: 100%;
+            object-fit: scale-down;
+            margin-top: -40%;
+            opacity: 0;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        .fade-in {
+            animation: fadeIn .5s;
+            opacity: 1
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .fade-out {
+            animation: fadeOut 2s;
+            opacity: 0
+        }
+
+
 
 
     </style>
@@ -305,25 +371,35 @@
             </div>
 
             <div class="gift-ideas-container info-section" id="gift-ideas-container">
-                <ul id="gift-ideas-list">Gift Ideas</ul>
-                <form onsubmit="this.getRootNode().host.postGiftIdea(event, 'gift_idea_field', 'idea')">
+                <h4 class="category-title">Gift Ideas</h4>
+                <ul id="gift-ideas-list"></ul>
+                <form class="gift-form" onsubmit="this.getRootNode().host.postGiftIdea(event, 'gift_idea_field', 'idea')">
                     <input type="text" name="gift_idea" id="gift_idea_field" />
                     <input type="submit" value="Add a gift idea!" />
                 </form>
             </div>
             <div class="gift-given-container info-section" id="gift-given-container">
-                <ul id="gift-given-list">Gift Given</ul>
-                <form onsubmit="this.getRootNode().host.postGiftIdea(event, 'gift_given_field', 'given')">
+                <h4 class="category-title">Gift Given</h4>
+                <ul id="gift-given-list"></ul>
+                <form class="gift-form" onsubmit="this.getRootNode().host.postGiftIdea(event, 'gift_given_field', 'given')">
                     <input type="text" name="gift_idea" id="gift_given_field" />
                     <input type="submit" value="Add a gift given!" />
                 </form>
             </div>
             <div class="gift-received-container info-section" id="gift-received-container">
-                <ul id="gift-received-list">Gift Received</ul>
-                <form onsubmit="this.getRootNode().host.postGiftIdea(event, 'gift_received_field', 'received')">
+                <h4 class="category-title">Gift Received</h4>
+                <ul id="gift-received-list"></ul>
+                <form class="gift-form" onsubmit="this.getRootNode().host.postGiftIdea(event, 'gift_received_field', 'received')">
                     <input type="text" name="gift_idea" id="gift_received_field" />
                     <input type="submit" value="Add a gift received!" />
                 </form>
+            </div>
+            <div class="gift-garbage-container info-section" id="gift-garbage-container">
+                <h5>Mmm mmm garbage, 
+                    <br>
+                    I love garbage!</h5>
+                <ul class=garbage-list id="gift-garbage"></ul>
+                <img class=fire id="fire" src="/static/fire.png">
             </div>
             <div class="more-options info-section" id="more-options">
                 <br>
