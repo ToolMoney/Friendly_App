@@ -58,11 +58,18 @@ class FriendRepository:
     @staticmethod
     def update(friend):
         database = get_db()
-        database.cursor().execute(f'''
-        UPDATE friends
-        SET last_contacted = '{friend['lastContacted']}'
-        WHERE id = '{friend['id']}'
-        ''')
+        if 'birthday' in friend:
+            database.cursor().execute(f'''
+            UPDATE friends
+            SET birthday = '{friend['birthday']}'
+            WHERE id = '{friend['id']}'
+            ''')
+        if 'frequency' in friend:
+            database.cursor().execute(f'''
+            UPDATE friends
+            SET frequency = '{friend['frequency']}'
+            WHERE id = '{friend['id']}'
+            ''')
         database.commit()
 
 

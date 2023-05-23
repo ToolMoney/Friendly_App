@@ -1,6 +1,9 @@
+--edit/add birthdays, frequency
+frequency alerts (months)
+
+
 
 adding friend-info attributes to info-wrapper
-incorperate other data in each row for folks
 birthdays
 pull people who haven't been contacted recently
 maximum button width
@@ -39,3 +42,16 @@ frequency=      "{{friend['frequency']}}"
 gift-ideas=     "{{friend['giftIdeas']}}"
 gift-given=     "{{friend['giftGiven']}}"
 gift-received=  "{{friend['giftReceived']}}"
+
+
+favDialog   =>  details-dialog
+confirmBtn  =>  confirmBtn
+showDialog  =>  edit-details
+
+showButton  =>  editDetailsButton
+favDialog   =>  detailsDialog
+outputBox   =>  outputBox
+
+
+edit-birthday-field
+edit-frequency-field

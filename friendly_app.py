@@ -84,5 +84,4 @@ def update_gift_status(friend_id, id):
 @app.route('/api/friends/<friend_id>/gifts/<id>', methods=['DELETE'])
 def delete_gift(friend_id, id):
     GiftRepository.delete(id)
-    # breakpoint()
     return ({}, 204)

@@ -32,10 +32,36 @@
 
             const shadowRoot = this.attachShadow({ mode: 'open' });
             shadowRoot.appendChild(templateContent.cloneNode(true));
+
+
+            const editDetailsButton = shadowRoot.getElementById('edit-details');
+            const detailsDialog = shadowRoot.getElementById('details-dialog');
+            const confirmBtn = detailsDialog.querySelector('#confirmBtn');
+            
+            editDetailsButton.addEventListener('click', () => {
+                detailsDialog.showModal();
+            });
+
+            confirmBtn.addEventListener('click', (event) => {
+                const friendId = this.getAttribute('friend-id')
+                const birthdayField = shadowRoot.getElementById('edit-birthday-field');
+                const frequencyField = shadowRoot.getElementById('edit-frequency-field');
+                const updatedBirthday = birthdayField.value;
+                const updatedFrequency = frequencyField.value;
+                let updateFriend = {'id': friendId};
+                if (updatedBirthday !== '') {
+                    updateFriend.birthday = updatedBirthday;
+                }
+                if (updatedFrequency !== '') {
+                    updateFriend.frequency = updatedFrequency;
+                }
+                this.updateFriend(updateFriend);
+            });
+
         }
 
         static get observedAttributes() { 
-            return ['last-contacted', 'friend-id'];
+            return ['last-contacted', 'friend-id', 'birthday', 'frequency'];
         }
 
         attributeChangedCallback(name, oldValue, newValue) {
@@ -48,13 +74,25 @@
                 }
             }
             if (name === 'friend-id') {
-                const friendId = newValue
+                const friendId = newValue;
                 this.getGiftIdeas(friendId).then((gifts) => {
-                    this.makeGiftListSortable()
+                    this.makeGiftListSortable();
                     for (let gift of gifts) {
                         this.addGift(gift);
                     }
-                })
+                });
+            }
+            if (name === 'birthday') {
+                const birthdayField = this.shadowRoot.getElementById('birthday-field');
+                if (newValue !== 'None') {
+                    birthdayField.innerText = newValue;
+                }
+            }
+            if (name === 'frequency') {
+                const frequencyField = this.shadowRoot.getElementById('frequency-field');
+                if (newValue !== 'None') {
+                    frequencyField.innerText = `Every ${newValue} months`;
+                }
             }
         }
 
@@ -62,12 +100,12 @@
         deleteFriend() {
             const friendName = this.getAttribute('friend-name');
             const friendId = this.getAttribute('friend-id');
-            const confirmation = confirm('Do you really want to delete ' + friendName + '?');
+            const confirmation = confirm(`Do you really want to delete ${friendName}?`);
             if (confirmation) {
-                fetch('/api/friends/' + friendId, {
+                fetch(`/api/friends/${friendId}`, {
                     method: 'DELETE'
                 }).then(() => {
-                    let friendRow = document.getElementById('row-' + friendId)
+                    let friendRow = document.getElementById(`row-${friendId}`)
                     friendRow.remove()
                 })
             }
@@ -92,7 +130,7 @@
 
 
         createContactLog(friend) {
-            return fetch('/api/friends/' + friend.id + '/contact_log', {
+            return fetch(`/api/friends/${friend.id}/contact_log`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -100,6 +138,31 @@
                 body: JSON.stringify(friend)
             }).then((response) => response.json())
         }
+
+
+        updateFriend(friend) {
+            const updateResponse = this.updateFriendDB(friend);
+            updateResponse.then((updatedFriend) => {
+                if (updatedFriend.birthday !== undefined) {
+                    this.setAttribute('birthday', updatedFriend.birthday);
+                }
+                if (updatedFriend.frequency !== undefined) {
+                    this.setAttribute('frequency', updatedFriend.frequency);
+                }
+            });
+        }
+
+        updateFriendDB(friend) {
+            return fetch(`/api/friends/${friend.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(friend)
+            }).then((response) => response.json())
+        }
+
+
 
         getGiftIdeas(friend_id) {
             return fetch(`/api/friends/${friend_id}/gifts`, {
@@ -215,7 +278,6 @@
             liElement.setAttribute('friend-id', giftIdea.friendId);
             giftSection.appendChild(liElement).appendChild(textNode);
         }
-
 
 
     }
@@ -349,6 +411,35 @@
             opacity: 0
         }
 
+        .birthday {
+            color: rebeccapurple;
+            font-size: 26;
+        }
+
+        .details-dialog {
+            position: absolute;
+        }
+        .details {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            grid-auto-rows: minmax(60px, auto);
+            align-items: center;
+            justify-content: center;
+            display: grid;
+            text-align: center;
+        }
+        .edit-birthday-box {
+            grid-column: 1;
+            grid-row: 1;
+        }
+        .edit-frequency-box {
+            grid-column: 2;
+            grid-row: 1;
+        }
+        .edit-buttons-box {
+            grid-column: 1/3;
+            grid-row: 2;
+        }
 
 
 
@@ -358,10 +449,19 @@
         
         <div class="info-wrapper" id="info-id" style="display: none">
             <div class="birthday-container info-section" id="birthday-container">
-                <h2>🎉🎉🎉</h2>
+                <h4>
+                    Birthday: 
+                    <br>
+                    <span class="birthday" id="birthday-field">Unknown</span>
+                </h4>
+                <!-- <h2>🎉🎉🎉</h2> -->
             </div>
             <div class="frequency-container info-section" id="frequency-container">
-                <p>Frequency of Contact Desired</p>
+                <p>
+                    Frequency of Contact Desired:
+                    <br>
+                    <span id="frequency-field">Not Set</span>
+                </p>
             </div>
             <div class="last-contacted-container info-section" id="last-contacted-container">
                 <p> 
@@ -374,7 +474,7 @@
                 <h4 class="category-title">Gift Ideas</h4>
                 <ul id="gift-ideas-list"></ul>
                 <form class="gift-form" onsubmit="this.getRootNode().host.postGiftIdea(event, 'gift_idea_field', 'idea')">
-                    <input type="text" name="gift_idea" id="gift_idea_field" />
+                    <input type="text" id="gift_idea_field" />
                     <input type="submit" value="Add a gift idea!" />
                 </form>
             </div>
@@ -382,7 +482,7 @@
                 <h4 class="category-title">Gift Given</h4>
                 <ul id="gift-given-list"></ul>
                 <form class="gift-form" onsubmit="this.getRootNode().host.postGiftIdea(event, 'gift_given_field', 'given')">
-                    <input type="text" name="gift_idea" id="gift_given_field" />
+                    <input type="text" id="gift_given_field" />
                     <input type="submit" value="Add a gift given!" />
                 </form>
             </div>
@@ -390,18 +490,45 @@
                 <h4 class="category-title">Gift Received</h4>
                 <ul id="gift-received-list"></ul>
                 <form class="gift-form" onsubmit="this.getRootNode().host.postGiftIdea(event, 'gift_received_field', 'received')">
-                    <input type="text" name="gift_idea" id="gift_received_field" />
+                    <input type="text" id="gift_received_field" />
                     <input type="submit" value="Add a gift received!" />
                 </form>
             </div>
             <div class="gift-garbage-container info-section" id="gift-garbage-container">
-                <h5>Mmm mmm garbage, 
+                <h5>
+                    Mmm mmm garbage, 
                     <br>
-                    I love garbage!</h5>
+                    I love garbage!
+                </h5>
                 <ul class=garbage-list id="gift-garbage"></ul>
                 <img class=fire id="fire" src="/static/fire.png">
             </div>
             <div class="more-options info-section" id="more-options">
+                <dialog class="details-dialog" id="details-dialog">
+                    <form method="dialog">
+                        <div class="details">
+                            <div class="edit-birthday-box">
+                                <h3>Birthday</h3>
+                                <input type="text" id="edit-birthday-field" />
+                            </div>
+                            <div class="edit-frequency-box">
+                                <h4>
+                                    Frequency of 
+                                    <br>
+                                    Contact Desired
+                                    <br>
+                                    in Months
+                                </h4>
+                                <input type="text" id="edit-frequency-field" />
+                            </div>
+                            <div class="edit-buttons-box">
+                                <button id="confirmBtn" value="default">Submit</button>
+                                <button value="cancel" formmethod="dialog">Cancel</button>
+                            </div>
+                        </div>
+                    </form>
+                </dialog>
+                <button id="edit-details">Edit Details</button>
                 <br>
                 <button onclick="this.getRootNode().host.deleteFriend()">Delete Friend</button>
             </div>
