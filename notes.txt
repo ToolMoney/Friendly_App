@@ -1,11 +1,7 @@
---edit/add birthdays, frequency
-frequency alerts (months)
 
+⚠
+☕
 
-
-adding friend-info attributes to info-wrapper
-birthdays
-pull people who haven't been contacted recently
 maximum button width
 
 
@@ -16,8 +12,8 @@ id
 name
 frequency
 birthday
-gift_received
-gift_given
+-gift_received
+-gift_given
 
 contact_log.
 id

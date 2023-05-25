@@ -66,12 +66,13 @@
 
         attributeChangedCallback(name, oldValue, newValue) {
             if (name === 'last-contacted') {
-                let templateSpan = this.shadowRoot.getElementById('last-contacted');
+                const templateSpan = this.shadowRoot.getElementById('last-contacted');
                 const shinyDate = new Date(newValue);
                 const options = {weekday: 'short', year: 'numeric', month: 'long', day: 'numeric'};
                 if (newValue !== 'None') {
                     templateSpan.innerText = shinyDate.toLocaleDateString("en-US", options);
                 }
+                this.checkFreqAlert();
             }
             if (name === 'friend-id') {
                 const friendId = newValue;
@@ -93,6 +94,7 @@
                 if (newValue !== 'None') {
                     frequencyField.innerText = `Every ${newValue} months`;
                 }
+                this.checkFreqAlert();
             }
         }
 
@@ -279,6 +281,38 @@
             giftSection.appendChild(liElement).appendChild(textNode);
         }
 
+        checkFreqAlert() {
+            
+            const lastContacted = this.getAttribute('last-contacted');
+            const frequency = this.getAttribute('frequency');
+            let alert = false
+            if (lastContacted === null 
+                    || lastContacted === 'None' 
+                    || frequency === null 
+                    || frequency === 'None')
+            {
+                alert = true;
+            } else {
+                const oldTimestamp = Date.parse(lastContacted);
+                const freshTimestamp = (new Date()).getTime();
+                const freqTimeGap = frequency * 2629800000;
+                if (freshTimestamp > oldTimestamp + freqTimeGap) {
+                    alert = true;
+                }
+            }
+            this.toggleFreqAlert(alert);
+        }
+
+        toggleFreqAlert(alertStatus) {
+            const [alert1, alert2] = this.shadowRoot.querySelectorAll('.alert');
+            if (alertStatus === true) {
+                alert1.style.display = 'inherit';
+                alert2.style.display = 'inherit';
+            } else {
+                alert1.style.display = 'none';
+                alert2.style.display = 'none';
+            }
+        }
 
     }
 
@@ -301,19 +335,15 @@
 
     function addFriend(friend) {
         const friendTable = document.getElementById("friend-table");
-        const newRow = friendTable.insertRow(-1);
-        newRow.id = `row-${friend.id}`;
-        const nameCell = newRow.insertCell(0);
-        const newTableData = document.createTextNode(friend.name);
-        newRow.classList.add('new-item');
-        nameCell.appendChild(newTableData);
+        const newFriendDiv = document.createElement('div');
+        friendTable.insertBefore(newFriendDiv, friendTable.firstChild);
+        newFriendDiv.id = `row-${friend.id}`;
 
-        const infoCell = newRow.insertCell(1);
         const info = document.createElement('friend-info')
         info.innerText = friend.name
         info.setAttribute('friend-name', friend.name);
         info.setAttribute('friend-id', friend.id)
-        infoCell.appendChild(info)
+        newFriendDiv.appendChild(info)
     }
 
 
@@ -440,12 +470,15 @@
             grid-column: 1/3;
             grid-row: 2;
         }
-
+        .alert {
+            display: none;
+            color: orangered;
+        }
 
 
     </style>
     <div class="friend-container">
-        <button class="friend-button" id="info-button-id" onclick="this.getRootNode().host.moreInfo()"><slot></slot></button>
+        <button class="friend-button" id="info-button-id" onclick="this.getRootNode().host.moreInfo()"><span class="alert">⚠⚠⚠ &nbsp;</span><slot></slot><span class="alert">&nbsp; ⚠⚠⚠</span></button>
         
         <div class="info-wrapper" id="info-id" style="display: none">
             <div class="birthday-container info-section" id="birthday-container">
@@ -540,7 +573,7 @@
 <div class="container">
     <h1 class="title">Look how many friends you have!</h1>
 
-        <div>
+        <div id="friend-table">
             {% for friend in friends %}
             <div id="row-{{friend['id']}}">
                 <friend-info 

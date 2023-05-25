@@ -12,7 +12,7 @@ class FriendRepository:
     @staticmethod
     def list():
         rows = get_db().cursor().execute('''
-        SELECT friends.id, name, MAX(timestamp), frequency, birthday, gift_given, gift_received
+        SELECT friends.id, name, MAX(timestamp), frequency, birthday
         FROM friends
         LEFT JOIN contact_log ON friends.id = contact_log.friend_id
         GROUP BY friends.id
@@ -20,15 +20,13 @@ class FriendRepository:
         ''').fetchall()
 
         friends = []
-        for id, name, last_contacted, frequency, birthday, gift_given, gift_received in rows:
+        for id, name, last_contacted, frequency, birthday in rows:
             friends.append({
                 'id': id, 
                 'name': name, 
                 'lastContacted': last_contacted, 
                 'frequency': frequency, 
                 'birthday': birthday, 
-                'giftGiven': gift_given, 
-                'giftReceived': gift_received
             })
         return friends
     
