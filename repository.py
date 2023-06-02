@@ -6,7 +6,7 @@ def get_db():
     if db is None:
         db = g._database = sqlite3.connect('friendly_database.db')
     return db
-
+00
 
 class FriendRepository:
     @staticmethod

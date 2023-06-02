@@ -3,13 +3,14 @@
         0%,100% { background: none }
         25% { background: darkgreen }
     }
-    tr.new-item {
+    .new-item {
         animation: flash-green 1s linear;
     }
 
     .container {
         margin-left: 20%;
         margin-right: 20%;
+        max-width: 800px;
     }
     .title {
         display: flex;
@@ -342,8 +343,11 @@
         const info = document.createElement('friend-info')
         info.innerText = friend.name
         info.setAttribute('friend-name', friend.name);
-        info.setAttribute('friend-id', friend.id)
-        newFriendDiv.appendChild(info)
+        info.setAttribute('friend-id', friend.id);
+        info.setAttribute('last-contacted', 'None');
+        info.setAttribute('frequency', 'None');
+        newFriendDiv.appendChild(info);
+        // info.classList.add('new-item')
     }
 
 
@@ -508,6 +512,7 @@
                 <ul id="gift-ideas-list"></ul>
                 <form class="gift-form" onsubmit="this.getRootNode().host.postGiftIdea(event, 'gift_idea_field', 'idea')">
                     <input type="text" id="gift_idea_field" />
+                    <br>
                     <input type="submit" value="Add a gift idea!" />
                 </form>
             </div>
@@ -516,6 +521,7 @@
                 <ul id="gift-given-list"></ul>
                 <form class="gift-form" onsubmit="this.getRootNode().host.postGiftIdea(event, 'gift_given_field', 'given')">
                     <input type="text" id="gift_given_field" />
+                    <br>
                     <input type="submit" value="Add a gift given!" />
                 </form>
             </div>
@@ -524,6 +530,7 @@
                 <ul id="gift-received-list"></ul>
                 <form class="gift-form" onsubmit="this.getRootNode().host.postGiftIdea(event, 'gift_received_field', 'received')">
                     <input type="text" id="gift_received_field" />
+                    <br>
                     <input type="submit" value="Add a gift received!" />
                 </form>
             </div>
@@ -580,7 +587,7 @@
                     friend-id="{{friend['id']}}"
                     friend-name="{{friend['name']}}"
                     birthday="{{friend['birthday']}}"
-                    last-contacted="{{friend.get('lastContacted', 'Never')}}"
+                    last-contacted="{{friend['lastContacted']}}"
                     frequency="{{friend['frequency']}}"
                     gift-given="{{friend['giftGiven']}}"
                     gift-received="{{friend['giftReceived']}}"
